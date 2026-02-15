@@ -28,7 +28,7 @@ def rotate3D(theta, axis_of_rotation, p_point):
                       [s,  c, 0],
                       [0,  0, 1]], dtype=float)
     else:
-        raise ValueError("axis must be 'x', 'y', or 'z'")
+        raise ValueError("Axis must be 'x', 'y', or 'z'")
 
     return np.matmul(R, p)
 
