@@ -25,8 +25,38 @@ This script starts, in order:
 | `ros2 launch robot.launch.py` | Brings up `robot_state_publisher`, the `ros2_control` node with the `neural_controller`, the joint / IMU broadcasters, and the `camera_ros` node publishing raw camera frames. |
 | `python hailo_detection.py` | Runs YOLOv5m on the Hailo NPU. Subscribes to the camera and publishes detections on `/detections`, plus annotated and equirectangular images. |
 
-Leave `system_start.sh` running in its own terminal. Then, in a second
-terminal, run the control loop:
+Leave `system_start.sh` running in its own terminal. Then, in a second terminal. 
+
+> **Side note — installing `vision_msgs` if it is missing**
+>
+> `main.py` imports `vision_msgs/Detection2DArray`. If that package is not
+> already available on the robot, you will see an import error on startup.
+> Install it into the existing `pupperv3-monorepo/ros2_ws` (which is already
+> on `AMENT_PREFIX_PATH` / `PYTHONPATH` in the robot's shell):
+>
+> **1. Clone the source**
+> ```bash
+> cd /home/pi/pupperv3-monorepo/ros2_ws/src
+> git clone -b jazzy https://github.com/ros-perception/vision_msgs.git
+> ```
+>
+> **2. Install build dependencies**
+> ```bash
+> sudo rosdep init   # skip if rosdep is already initialized
+> rosdep update
+> cd /home/pi/pupperv3-monorepo/ros2_ws
+> rosdep install --from-paths src/vision_msgs --ignore-src -r -y
+> ```
+>
+> **3. Build**
+> ```bash
+> cd /home/pi/pupperv3-monorepo/ros2_ws
+> source /opt/ros/jazzy/setup.bash
+> colcon build --packages-select vision_msgs vision_msgs_py --symlink-install
+> ```
+---
+
+Your code will need to be added to the main.py:
 
 ```bash
 python main.py
@@ -43,8 +73,6 @@ stop instead of continuing at the last commanded velocity.
 | --- | --- | --- | --- |
 | `/detections` | subscribed | `vision_msgs/Detection2DArray` | Per-frame object detections from Hailo. |
 | `/cmd_vel` | published | `geometry_msgs/Twist` | Body-frame velocity command consumed by the `neural_controller`. |
-
----
 
 ## 2. Control API (`PupperInterface`)
 
